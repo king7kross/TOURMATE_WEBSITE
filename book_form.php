@@ -1,24 +1,36 @@
 <?php
+session_start();
+if (!isset($_SESSION['user'])) {
+    header('Location: login.php');
+    exit;
+}
 
-    $connection = mysqli_connect('localhost','root','','book_db');
+$connection = mysqli_connect('localhost','root','','book_db');
 
-    if(isset($_POST['send'])){
-        $name = $_POST['name'];
-        $email = $_POST['email'];
-        $phone = $_POST['phone'];
-        $address = $_POST['address'];
-        $location = $_POST['location'];
-        $guests = $_POST['guests'];
-        $arrivals = $_POST['arrivals'];
-        $departure = $_POST['departure'];
-        
-        $request = " insert into book_form(name, email,	phone, address,	location, guests, arrivals, departure) values('$name','$email','$phone','$address','$location','$guests','$arrivals','$departure')";
+if(isset($_POST['send'])){
+    $name = $_POST['name'];
+    // Override email with logged-in user's email from session for consistency
+    $email = $_SESSION['user']['email'] ?? $_POST['email'];
+    $phone = $_POST['phone'];
+    $address = $_POST['address'];
+    $location = $_POST['location'];
+    $guests = $_POST['guests'];
+    $arrivals = $_POST['arrivals'];
+    $departure = $_POST['departure'];
+    
+    $request = "INSERT INTO book_form(name, email, phone, address, location, guests, arrivals, departure) VALUES('$name','$email','$phone','$address','$location','$guests','$arrivals','$departure')";
 
-        mysqli_query($connection, $request);
+    $result = mysqli_query($connection, $request);
 
-        header('location:book.php');
-
-    }else{
-        echo 'something went wrong try again';
+    if ($result) {
+        $_SESSION['booking_confirmed'] = true;
+        header('Location: checkout.php');
+        exit;
+    } else {
+        echo 'Booking failed. Please try again.';
     }
+
+}else{
+    echo 'something went wrong try again';
+}
 ?>

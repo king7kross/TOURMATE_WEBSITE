@@ -15,6 +15,9 @@
 <body>
    
 <!-- header section starts-->
+<?php
+session_start();
+?>
 <section class="header">
 
   <a href="home.php" class="logo">travel</a>
@@ -24,6 +27,13 @@
    <a href="about.php">about</a>
    <a href="package.php">package</a>
    <a href="book.php">book</a>
+   <?php if (isset($_SESSION['user'])): ?>
+       <a href="#">Hello, <?=htmlspecialchars($_SESSION['user']['username'])?></a>
+       <a href="logout.php">logout</a>
+   <?php else: ?>
+       <a href="login.php">login</a>
+       <a href="register.php">register</a>
+   <?php endif; ?>
   </nav>
 
   <div id="menu-btn" class="fas fa-bars"></div>
@@ -290,6 +300,191 @@
 <script src="script.js"></script>
 
 
+
+<!-- Chatbot UI -->
+<style>
+  /* Chatbot container */
+  #chatbot-container {
+    display: none;
+    position: fixed;
+    bottom: 90px;
+    right: 20px;
+    width: 350px;
+    max-height: 450px;
+    background: white;
+    border: 1px solid #8e44ad;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    border-radius: 10px;
+    z-index: 10000;
+    flex-direction: column;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  /* Chatbot header */
+  #chatbot-header {
+    background-color: #8e44ad;
+    color: white;
+    padding: 10px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  #chatbot-header h4 {
+    margin: 0;
+    font-size: 1.6rem;
+  }
+
+  #chatbot-close-btn {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1.8rem;
+    cursor: pointer;
+  }
+
+  /* Chat messages area */
+  #chatbot-messages {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+    font-size: 1.4rem;
+    background: #f9f9f9;
+  }
+
+  /* Chat message bubbles */
+  .chatbot-message {
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    border-radius: 15px;
+    max-width: 80%;
+    word-wrap: break-word;
+  }
+
+  .chatbot-message.user {
+    background-color: #8e44ad;
+    color: white;
+    align-self: flex-end;
+  }
+
+  .chatbot-message.bot {
+    background-color: #e0e0e0;
+    color: #333;
+    align-self: flex-start;
+  }
+
+  /* Chat input form */
+  #chatbot-form {
+    display: flex;
+    border-top: 1px solid #8e44ad;
+  }
+
+  #chatbot-input {
+    flex: 1;
+    padding: 10px;
+    font-size: 1.4rem;
+    border: none;
+    border-radius: 0 0 0 10px;
+    outline: none;
+  }
+
+  #chatbot-form button {
+    background-color: #8e44ad;
+    color: white;
+    border: none;
+    padding: 0 20px;
+    font-size: 1.4rem;
+    cursor: pointer;
+    border-radius: 0 0 10px 0;
+  }
+
+  /* Chat toggle button */
+  #chatbot-toggle-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #8e44ad;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    font-size: 1.6rem;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    z-index: 10000;
+  }
+</style>
+
+<div id="chatbot-container" aria-live="polite" aria-relevant="additions" role="log" aria-label="Chatbot window">
+    <div id="chatbot-header">
+        <h4>Chatbot</h4>
+        <button id="chatbot-close-btn" aria-label="Close chatbot">&times;</button>
+    </div>
+    <div id="chatbot-messages"></div>
+    <form id="chatbot-form" aria-label="Chatbot input form">
+        <input type="text" id="chatbot-input" placeholder="Type your message..." autocomplete="off" required aria-required="true" />
+        <button type="submit" aria-label="Send message">Send</button>
+    </form>
+</div>
+
+<button id="chatbot-toggle-btn" title="Chat with us!" aria-label="Open chatbot">Chat</button>
+
+<script>
+    // Chatbot toggle
+    const chatbotToggleBtn = document.getElementById('chatbot-toggle-btn');
+    const chatbotContainer = document.getElementById('chatbot-container');
+    const chatbotCloseBtn = document.getElementById('chatbot-close-btn');
+    const chatbotMessages = document.getElementById('chatbot-messages');
+    const chatbotForm = document.getElementById('chatbot-form');
+    const chatbotInput = document.getElementById('chatbot-input');
+
+    chatbotToggleBtn.addEventListener('click', () => {
+        chatbotContainer.style.display = 'flex';
+        chatbotToggleBtn.style.display = 'none';
+        chatbotInput.focus();
+    });
+
+    chatbotCloseBtn.addEventListener('click', () => {
+        chatbotContainer.style.display = 'none';
+        chatbotToggleBtn.style.display = 'block';
+    });
+
+    // Function to append message
+    function appendMessage(sender, text) {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('chatbot-message', sender);
+        messageDiv.textContent = text;
+        chatbotMessages.appendChild(messageDiv);
+        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+    }
+
+    // Handle form submit
+    chatbotForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const userMessage = chatbotInput.value.trim();
+        if (!userMessage) return;
+        appendMessage('user', userMessage);
+        chatbotInput.value = '';
+        appendMessage('bot', 'Typing...');
+
+        try {
+            const response = await fetch('chatbot.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: userMessage })
+            });
+            const data = await response.json();
+            chatbotMessages.lastChild.textContent = data.reply || 'Sorry, no response.';
+        } catch (error) {
+            chatbotMessages.lastChild.textContent = 'Error communicating with chatbot.';
+        }
+    });
+</script>
 
 </body>
 </html>

@@ -15,6 +15,9 @@
 <body>
    
 
+<?php
+session_start();
+?>
 <section class="header">
 
   <a href="home.php" class="logo">travel</a>
@@ -24,6 +27,13 @@
    <a href="about.php">about</a>
    <a href="package.php">package</a>
    <a href="book.php">book</a>
+   <?php if (isset($_SESSION['user'])): ?>
+       <a href="#">Hello, <?=htmlspecialchars($_SESSION['user']['username'])?></a>
+       <a href="logout.php">logout</a>
+   <?php else: ?>
+       <a href="login.php">login</a>
+       <a href="register.php">register</a>
+   <?php endif; ?>
   </nav>
 
   <div id="menu-btn" class="fas fa-bars"></div>

@@ -15,6 +15,13 @@
 <body>
    
 
+<?php
+session_start();
+if (!isset($_SESSION['user'])) {
+    header('Location: login.php');
+    exit;
+}
+?>
 <section class="header">
 
   <a href="home.php" class="logo">travel</a>
@@ -24,6 +31,13 @@
    <a href="about.php">about</a>
    <a href="package.php">package</a>
    <a href="book.php">book</a>
+   <?php if (isset($_SESSION['user'])): ?>
+       <a href="#">Hello, <?=htmlspecialchars($_SESSION['user']['username'])?></a>
+       <a href="logout.php">logout</a>
+   <?php else: ?>
+       <a href="login.php">login</a>
+       <a href="register.php">register</a>
+   <?php endif; ?>
   </nav>
 
   <div id="menu-btn" class="fas fa-bars"></div>
@@ -40,6 +54,27 @@
 <section class="booking">
 
     <h1 class="heading-title">book your trip!</h1>
+
+    <?php
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    if (isset($_SESSION['booking_confirmed']) && $_SESSION['booking_confirmed']) {
+        echo '<p id="booking-confirmation" style="color: green; font-weight: bold; font-size: 2rem; text-align: center; margin: 20px 0;">Booking confirmed!</p>';
+        unset($_SESSION['booking_confirmed']);
+    }
+    ?>
+    <script>
+        window.addEventListener('DOMContentLoaded', (event) => {
+            const confirmation = document.getElementById('booking-confirmation');
+            if (confirmation) {
+                setTimeout(() => {
+                    confirmation.style.display = 'none';
+                }, 10000); // Hide after 10 seconds
+            }
+        });
+    </script>
+
     <form action="book_form.php" method="post" class="book-form">
 
         <div class="flex">
@@ -53,7 +88,7 @@
             </div>
             <div class="inputBox">
                 <span>phone :</span>
-                <input type="number" placeholder="enter your number" name="phone">
+                <input type="tel" placeholder="enter your 10-digit mobile number" name="phone" pattern="[0-9]{10}" maxlength="10" title="Please enter exactly 10 digits, numbers only" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
             </div>
             <div class="inputBox">
                 <span>address :</span>

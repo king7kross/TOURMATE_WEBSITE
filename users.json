@@ -1,0 +1,17 @@
+[
+    {
+        "username": "kartik",
+        "email": "amansharma@gmail.com",
+        "password": "$2y$10$pDwvYzPXbB91xnm2aCT78.CBTM79OrTQfH1DMm61Z8VCfU3hmmCm2"
+    },
+    {
+        "username": "kartik",
+        "email": "f@gmail.com",
+        "password": "$2y$10$NCgMiWin22X6Hyh.5WalF.sdLla10FMgIzUUwvj.PAh6dbgWuke1K"
+    },
+    {
+        "username": "ashish",
+        "email": "jsdh@gmail.com",
+        "password": "$2y$10$vOd.mzJRhpGfnJGht0lgF.ZVyWpnGFoPxVA0OrkwiGk9dZT5E4kC."
+    }
+]
