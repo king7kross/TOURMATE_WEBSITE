@@ -218,7 +218,7 @@ def chatbot():
         return jsonify({'reply': 'Empty message received'})
     if len(user_message) > 1000:
         return jsonify({'reply': 'Message too long. Please shorten your input.'})
-    api_key = 'AIzaSyB9b6_1rWmR5Px5kcYLNdF2BWwCILZ86pE'
+    
     api_url = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}'
     request_body = {
         'contents': [
