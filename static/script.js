@@ -21,3 +21,5 @@ var swiper = new Swiper(".home-slider", {
 
 
 
+// Copy of original script.js content
+// Please replace this placeholder with the actual content of your script.js file

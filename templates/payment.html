@@ -1,43 +1,3 @@
-<?php
-session_start();
-if (!isset($_SESSION['user'])) {
-    header('Location: login.php');
-    exit;
-}
-
-$connection = mysqli_connect('localhost', 'root', '', 'book_db');
-if (!$connection) {
-    die("Database connection failed: " . mysqli_connect_error());
-}
-
-$bookingId = $_SESSION['booking_id'] ?? null;
-$booking = null;
-$payment = null;
-
-if ($bookingId) {
-    // Fetch payment details by booking ID
-    $paymentQuery = "SELECT * FROM payments WHERE booking_id = ?";
-    $paymentStmt = mysqli_prepare($connection, $paymentQuery);
-    mysqli_stmt_bind_param($paymentStmt, "s", $bookingId);
-    mysqli_stmt_execute($paymentStmt);
-    $paymentResult = mysqli_stmt_get_result($paymentStmt);
-    $payment = mysqli_fetch_assoc($paymentResult);
-    mysqli_stmt_close($paymentStmt);
-
-    // Fetch booking details by booking ID
-    $bookingQuery = "SELECT * FROM book_form WHERE id = (SELECT id FROM book_form WHERE email = ? ORDER BY id DESC LIMIT 1)";
-    $bookingStmt = mysqli_prepare($connection, $bookingQuery);
-    $userEmail = $_SESSION['user']['email'] ?? null;
-    mysqli_stmt_bind_param($bookingStmt, "s", $userEmail);
-    mysqli_stmt_execute($bookingStmt);
-    $bookingResult = mysqli_stmt_get_result($bookingStmt);
-    $booking = mysqli_fetch_assoc($bookingResult);
-    mysqli_stmt_close($bookingStmt);
-}
-
-mysqli_close($connection);
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -45,7 +5,7 @@ mysqli_close($connection);
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Payment Confirmation</title>
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -118,28 +78,35 @@ mysqli_close($connection);
     <div class="confirmation-container" role="main" aria-live="polite">
         <h1>Congratulations!</h1>
         <p>Your booking is confirmed.</p>
-        <?php if ($payment): ?>
-            <div class="booking-id" aria-label="Booking ID">Booking ID - <?=htmlspecialchars($payment['booking_id'])?></div>
+        {% if payment %}
+            <div class="booking-id" aria-label="Booking Code" style="font-size: 2.4rem; font-weight: 700; letter-spacing: 0.3rem; background: linear-gradient(90deg, #ff6a00, #ee0979); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1rem;">
+                Booking Code - {{ booking_code }}
+            </div>
             <div class="payment-details" aria-label="Payment Details">
-                <p><strong>Name on Card:</strong> <?=htmlspecialchars($payment['name_on_card'])?></p>
-                <p><strong>Card Number:</strong> **** **** **** <?=htmlspecialchars(substr($payment['card_number'], -4))?></p>
+                <p><strong>Name on Card:</strong> {{ payment.name_on_card }}</p>
+                <p><strong>Card Number:</strong> **** **** **** {{ payment.card_number[-4:] }}</p>
             </div>
-        <?php endif; ?>
-        <?php if ($booking): ?>
+        {% else %}
+            <div class="booking-id" style="font-size: 2rem; font-weight: 600; color: #fff; margin-bottom: 2rem;">
+                Booking information could not be retrieved. Please try again.
+            </div>
+        {% endif %}
+        {% if booking %}
             <div class="booking-details" aria-label="Booking Details">
-                <p><strong>Name:</strong> <?=htmlspecialchars($booking['name'])?></p>
-                <p><strong>Email:</strong> <?=htmlspecialchars($booking['email'])?></p>
-                <p><strong>Phone:</strong> <?=htmlspecialchars($booking['phone'])?></p>
-                <p><strong>Address:</strong> <?=htmlspecialchars($booking['address'])?></p>
-                <p><strong>Destination:</strong> <?=htmlspecialchars($booking['location'])?></p>
-                <p><strong>Guests:</strong> <?=htmlspecialchars($booking['guests'])?></p>
-                <p><strong>Arrival Date:</strong> <?=htmlspecialchars($booking['arrivals'])?></p>
-                <p><strong>Departure Date:</strong> <?=htmlspecialchars($booking['departure'])?></p>
+                <p><strong>Name:</strong> {{ booking.name }}</p>
+                <p><strong>Email:</strong> {{ booking.email }}</p>
+                <p><strong>Phone:</strong> {{ booking.phone }}</p>
+                <p><strong>Address:</strong> {{ booking.address }}</p>
+                <p><strong>Destination:</strong> {{ booking.location }}</p>
+                <p><strong>Guests:</strong> {{ booking.guests }}</p>
+                <p><strong>Arrival Date:</strong> {{ booking.arrivals }}</p>
+                <p><strong>Departure Date:</strong> {{ booking.departure }}</p>
+                <p><strong>Amount Paid:</strong> {{ '{:,}'.format(booking.guests | int * 10000) }}</p>
             </div>
-        <?php else: ?>
+        {% else %}
             <p>No booking details found.</p>
-        <?php endif; ?>
-        <a href="home.php" class="btn" role="button">Back to Home</a>
+        {% endif %}
+        <a href="{{ url_for('home') }}" class="btn" role="button">Back to Home</a>
     </div>
 </body>
 </html>
