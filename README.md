@@ -63,3 +63,8 @@ TourMate is a web application built with Flask that provides a platform for user
 - The chatbot feature uses the Gemini API. You will need a valid API key to enable this functionality.
 - Ensure your MySQL server is running and accessible with the configured credentials.
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 69f5bc946f3a55ad535a76d4bc6f7b59e2835396
