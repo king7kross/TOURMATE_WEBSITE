@@ -218,19 +218,26 @@ def chatbot():
         return jsonify({'reply': 'Empty message received'})
     if len(user_message) > 1000:
         return jsonify({'reply': 'Message too long. Please shorten your input.'})
-    api_key = 'AIzaSyB9b6_1rWmR5Px5kcYLNdF2BWwCILZ86pE'
-    api_url = f'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}'
-    request_body = {
-        'contents': [
-            {
-                'parts': [
-                    {'text': user_message}
-                ]
-            }
-        ]
+    api_key = 'AIzaSyAwaZpv6-8GXAQfzO_14yJJhCKxD8MK7xM'
+    api_url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+    headers = {
+        "x-goog-api-key":api_key,
+        "Content-Type":"application/json"
     }
+    data = {
+    "contents": [
+        {
+            "role":"user",
+            "parts": [
+                {
+                    "text": user_message
+                }
+            ]
+        }
+    ]
+}
     try:
-        response = requests.post(api_url, json=request_body, timeout=20)
+        response = requests.post(api_url,headers=headers,json=data, timeout=20)
         response.raise_for_status()
         response_data = response.json()
         candidates = response_data.get('candidates', [])
@@ -247,8 +254,9 @@ def chatbot():
             return jsonify({'reply': bot_reply})
         else:
             return jsonify({'reply': 'Invalid response from Gemini API.'})
-    except Exception:
-        return jsonify({'reply': 'An internal error occurred. Please try again later.'})
+    except Exception as e:
+           print("ERROR:", e)
+           print("RESPONSE:", response.text if 'response' in locals() else None)
 
 @app.route('/payment')
 def payment():
